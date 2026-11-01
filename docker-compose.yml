@@ -47,6 +47,46 @@ services:
       db:
         condition: service_healthy
 
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/ -o /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  wpcli:
+    image: wordpress:cli
+    container_name: wordpress_cli
+    restart: "no"
+    depends_on:
+      wordpress:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+
+      WORDPRESS_URL: ${WORDPRESS_URL}
+      WORDPRESS_TITLE: ${WORDPRESS_TITLE}
+      WORDPRESS_ADMIN_USERNAME: ${WORDPRESS_ADMIN_USERNAME}
+      WORDPRESS_ADMIN_PASSWORD: ${WORDPRESS_ADMIN_PASSWORD}
+      WORDPRESS_ADMIN_EMAIL: ${WORDPRESS_ADMIN_EMAIL}
+      WORDPRESS_LOCALE: ${WORDPRESS_LOCALE}
+      WORDPRESS_TIMEZONE: ${WORDPRESS_TIMEZONE}
+
+      PLUGIN_WP_MAIL_SMTP: ${PLUGIN_WP_MAIL_SMTP}
+      PLUGIN_WORDFENCE: ${PLUGIN_WORDFENCE}
+      PLUGIN_RANK_MATH: ${PLUGIN_RANK_MATH}
+      PLUGIN_LITESPEED_CACHE: ${PLUGIN_LITESPEED_CACHE}
+      PLUGIN_UPDRAFTPLUS: ${PLUGIN_UPDRAFTPLUS}
+    volumes:
+      - wordpress_data:/var/www/html
+      - ./wordpress-init.sh:/wordpress-init.sh:ro
+    networks:
+      - wp_network
+    entrypoint: ["/bin/sh", "/wordpress-init.sh"]
+
 volumes:
   db_data:
   wordpress_data:
